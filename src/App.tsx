@@ -8,6 +8,7 @@ import { ClipReviewer } from './components/ClipReviewer'
 import { PedagogicalNotice } from './components/PedagogicalNotice'
 import { computeAngles } from './lib/angles'
 import { createAngleSmoother } from './lib/smoothing'
+import { createLiveCadence } from './lib/liveCadence'
 import type { JointAngles, PoseFrame } from './types'
 import './index.css'
 
@@ -29,6 +30,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [frame, setFrame] = useState<PoseFrame | null>(null)
   const [angles, setAngles] = useState<JointAngles>(emptyAngles)
+  const [liveCadence, setLiveCadence] = useState<number | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const rafRef = useRef<number>(0)
@@ -41,6 +43,7 @@ export default function App() {
     kneeL: createAngleSmoother(0.4), kneeR: createAngleSmoother(0.4),
     ankleL: createAngleSmoother(0.4), ankleR: createAngleSmoother(0.4),
   })
+  const cadenceCounter = useRef(createLiveCadence(5000, 300))
 
   // Loop de deteção no modo Ao Vivo.
   useEffect(() => {
@@ -61,6 +64,8 @@ export default function App() {
             ankle: { left: s.ankleL(raw.ankle.left), right: s.ankleR(raw.ankle.right) },
           })
           if (recording) captureFrame(lm)
+          const ankleY = (lm[27].y + lm[28].y) / 2
+          setLiveCadence(cadenceCounter.current.push(ankleY, performance.now()))
         }
       }
       rafRef.current = requestAnimationFrame(tick)
@@ -130,6 +135,10 @@ export default function App() {
             </button>
           </div>
           <AnglePanel angles={angles} />
+          <p className="live-cadence">
+            Cadência (aproximada):{' '}
+            <strong>{liveCadence === null ? '—' : Math.round(liveCadence)}</strong> passos/min
+          </p>
         </>
       )}
 
