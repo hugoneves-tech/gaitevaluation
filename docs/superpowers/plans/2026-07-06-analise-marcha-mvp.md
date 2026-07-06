@@ -202,7 +202,7 @@ describe('angleBetween', () => {
   })
 
   it('devolve 45 para meio ângulo reto', () => {
-    const a = P(0, 0), b = P(0, 1), c = P(1, 2)
+    const a = P(0, 0), b = P(0, 1), c = P(1, 0)
     expect(angleBetween(a, b, c)).toBeCloseTo(45, 1)
   })
 })
