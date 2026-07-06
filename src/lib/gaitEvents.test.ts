@@ -87,3 +87,32 @@ describe('detectEvents — verticalVelocity', () => {
     expect(leftHS.map((e) => e.timeMs)).toEqual([200, 600])
   })
 })
+
+describe('detectEvents — ankleDistance', () => {
+  it('nos máximos de afastamento marca heelStrike no pé da frente e toeOff no de trás', () => {
+    const spec = [
+      { l: 0.30, r: 0.30 },
+      { l: 0.34, r: 0.28 },
+      { l: 0.42, r: 0.26 },
+      { l: 0.40, r: 0.34 },
+      { l: 0.40, r: 0.40 },
+      { l: 0.42, r: 0.48 },
+      { l: 0.40, r: 0.56 },
+      { l: 0.48, r: 0.54 },
+      { l: 0.52, r: 0.52 },
+    ]
+    const frames: RecordedFrame[] = spec.map((s, i) =>
+      frameAt(i * 100, {
+        hipL: [0.1 + (0.4 * i) / (spec.length - 1), 0.5],
+        hipR: [0.1 + (0.4 * i) / (spec.length - 1), 0.5],
+        ankL: [s.l, 0.9],
+        ankR: [s.r, 0.9],
+      }),
+    )
+    const events = detectEvents(frames, 'ankleDistance')
+    expect(events).toContainEqual({ timeMs: 200, side: 'left', type: 'heelStrike' })
+    expect(events).toContainEqual({ timeMs: 200, side: 'right', type: 'toeOff' })
+    expect(events).toContainEqual({ timeMs: 600, side: 'right', type: 'heelStrike' })
+    expect(events).toContainEqual({ timeMs: 600, side: 'left', type: 'toeOff' })
+  })
+})

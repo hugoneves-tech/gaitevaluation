@@ -70,6 +70,25 @@ function detectVerticalVelocity(frames: RecordedFrame[]): GaitEvent[] {
   return out
 }
 
+/** Método Distância entre tornozelos: máx afastamento => HS pé da frente, TO pé de trás. */
+function detectAnkleDistance(frames: RecordedFrame[], dir: number): GaitEvent[] {
+  const values = frames.map(
+    (f) => Math.abs(f.landmarks[ANKLE.left].x - f.landmarks[ANKLE.right].x),
+  )
+  const times = frames.map((f) => f.timeMs)
+  const out: GaitEvent[] = []
+  for (const i of findPeaks(values, times, MIN_EVENT_GAP_MS)) {
+    const f = frames[i]
+    const leftAheadWhenDirPos = f.landmarks[ANKLE.left].x > f.landmarks[ANKLE.right].x
+    const leftLeads = dir > 0 ? leftAheadWhenDirPos : !leftAheadWhenDirPos
+    const front: Side = leftLeads ? 'left' : 'right'
+    const back: Side = leftLeads ? 'right' : 'left'
+    out.push({ timeMs: times[i], side: front, type: 'heelStrike' })
+    out.push({ timeMs: times[i], side: back, type: 'toeOff' })
+  }
+  return out
+}
+
 /**
  * Deteta os eventos do ciclo de marcha por um dos métodos.
  * Devolve [] se não houver deslocação suficiente. Eventos ordenados por timeMs.
@@ -83,5 +102,6 @@ export function detectEvents(
   let events: GaitEvent[] = []
   if (method === 'coordinate') events = detectCoordinate(frames, dir)
   else if (method === 'verticalVelocity') events = detectVerticalVelocity(frames)
+  else if (method === 'ankleDistance') events = detectAnkleDistance(frames, dir)
   return events.sort((a, b) => a.timeMs - b.timeMs)
 }
