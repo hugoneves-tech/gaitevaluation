@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback: serve index.html para qualquer rota.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
