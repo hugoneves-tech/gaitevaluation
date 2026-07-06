@@ -1,12 +1,19 @@
 import { useMemo, useRef, useState } from 'react'
-import type { RecordedClip } from '../types'
+import type { GaitEventMethod, OperatedSide, RecordedClip } from '../types'
 import { computeAngles } from '../lib/angles'
+import { detectEvents } from '../lib/gaitEvents'
+import { computeMetrics } from '../lib/gaitMetrics'
 import { SkeletonOverlay } from './SkeletonOverlay'
 import { AnglePanel } from './AnglePanel'
+import { DetectionProfileBar } from './DetectionProfileBar'
+import { OperatedSideSelector } from './OperatedSideSelector'
+import { GaitMetricsPanel } from './GaitMetricsPanel'
 
 const WIDTH = 640
 const HEIGHT = 480
 const STEP_MS = 1000 / 30 // um frame a 30 fps
+
+const EVENT_COLOR = { left: '#2ecc71', right: '#e74c3c' } as const
 
 function nearestFrame(clip: RecordedClip, timeMs: number) {
   let best = clip.frames[0]
@@ -24,6 +31,8 @@ function nearestFrame(clip: RecordedClip, timeMs: number) {
 export function ClipReviewer({ clip }: { clip: RecordedClip }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [timeMs, setTimeMs] = useState(0)
+  const [method, setMethod] = useState<GaitEventMethod>('coordinate')
+  const [operated, setOperated] = useState<OperatedSide>('left')
 
   const frame = useMemo(
     () => (clip.frames.length ? nearestFrame(clip, timeMs) : null),
@@ -33,6 +42,12 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
     () => (frame ? computeAngles(frame.landmarks, 0.5) : null),
     [frame],
   )
+  const events = useMemo(() => detectEvents(clip.frames, method), [clip, method])
+  const metrics = useMemo(() => computeMetrics(events, operated), [events, operated])
+
+  const durationMs = clip.frames.length
+    ? clip.frames[clip.frames.length - 1].timeMs
+    : 0
 
   const seek = (deltaMs: number) => {
     const video = videoRef.current
@@ -46,6 +61,11 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
 
   return (
     <div>
+      <p className="pedagogical-notice" role="note">
+        Para esta análise, filme de lado (plano sagital) o doente a caminhar vários passos a
+        atravessar o enquadramento.
+      </p>
+
       <div style={{ position: 'relative', width: WIDTH, height: HEIGHT }}>
         <video
           ref={videoRef}
@@ -58,6 +78,23 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
         <SkeletonOverlay frame={frame?.landmarks ?? null} width={WIDTH} height={HEIGHT} />
       </div>
 
+      {durationMs > 0 && (
+        <div className="event-timeline" aria-label="Marcadores de evento">
+          {events.map((ev, i) => (
+            <span
+              key={i}
+              className="event-marker"
+              title={`${ev.type === 'heelStrike' ? 'Contacto inicial' : 'Toe off'} (${ev.side})`}
+              style={{
+                left: `${(ev.timeMs / durationMs) * 100}%`,
+                background: EVENT_COLOR[ev.side],
+                opacity: ev.type === 'heelStrike' ? 1 : 0.4,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="controls">
         <button onClick={() => seek(-STEP_MS)}>◀ Frame</button>
         <button onClick={() => seek(STEP_MS)}>Frame ▶</button>
@@ -65,6 +102,10 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
         <button onClick={() => setRate(0.5)}>0.5×</button>
         <button onClick={() => setRate(1)}>1×</button>
       </div>
+
+      <DetectionProfileBar value={method} onChange={setMethod} />
+      <OperatedSideSelector value={operated} onChange={setOperated} />
+      <GaitMetricsPanel metrics={metrics} />
 
       {angles && <AnglePanel angles={angles} />}
     </div>
