@@ -60,6 +60,16 @@ function detectCoordinate(frames: RecordedFrame[], dir: number): GaitEvent[] {
   return out
 }
 
+/** Método Velocidade vertical: sinal = ankle_y (máx = heelStrike, mín = toeOff). */
+function detectVerticalVelocity(frames: RecordedFrame[]): GaitEvent[] {
+  const out: GaitEvent[] = []
+  for (const side of ['left', 'right'] as Side[]) {
+    const { values, times } = signalOf(frames, (f) => f.landmarks[ANKLE[side]].y)
+    out.push(...eventsFromSignal(values, times, side))
+  }
+  return out
+}
+
 /**
  * Deteta os eventos do ciclo de marcha por um dos métodos.
  * Devolve [] se não houver deslocação suficiente. Eventos ordenados por timeMs.
@@ -72,5 +82,6 @@ export function detectEvents(
   if (dir === 0 || frames.length < 3) return []
   let events: GaitEvent[] = []
   if (method === 'coordinate') events = detectCoordinate(frames, dir)
+  else if (method === 'verticalVelocity') events = detectVerticalVelocity(frames)
   return events.sort((a, b) => a.timeMs - b.timeMs)
 }

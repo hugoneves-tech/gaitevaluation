@@ -69,3 +69,21 @@ describe('detectEvents — coordinate', () => {
     expect(detectEvents(frames, 'coordinate')).toEqual([])
   })
 })
+
+describe('detectEvents — verticalVelocity', () => {
+  it('deteta heel strikes nos máximos da altura do tornozelo (pé mais baixo)', () => {
+    const ys = [0.7, 0.8, 0.9, 0.8, 0.7, 0.8, 0.9, 0.8, 0.7]
+    const frames: RecordedFrame[] = ys.map((y, i) => {
+      const hipX = 0.1 + (0.4 * i) / (ys.length - 1)
+      return frameAt(i * 100, {
+        hipL: [hipX, 0.5],
+        hipR: [hipX, 0.5],
+        ankL: [hipX, y],
+        ankR: [hipX, 0.7],
+      })
+    })
+    const events = detectEvents(frames, 'verticalVelocity')
+    const leftHS = events.filter((e) => e.side === 'left' && e.type === 'heelStrike')
+    expect(leftHS.map((e) => e.timeMs)).toEqual([200, 600])
+  })
+})
