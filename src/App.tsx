@@ -25,6 +25,7 @@ const emptyAngles: JointAngles = {
 
 export default function App() {
   const [mode, setMode] = useState<Mode>('live')
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
   const [error, setError] = useState<string | null>(null)
   const [frame, setFrame] = useState<PoseFrame | null>(null)
   const [angles, setAngles] = useState<JointAngles>(emptyAngles)
@@ -106,12 +107,28 @@ export default function App() {
       {mode === 'live' && (
         <>
           <div style={{ position: 'relative', width: WIDTH, height: HEIGHT }}>
-            <CameraView ref={videoRef} width={WIDTH} height={HEIGHT} onError={setError} />
+            <CameraView
+              ref={videoRef}
+              width={WIDTH}
+              height={HEIGHT}
+              facingMode={facingMode}
+              onError={setError}
+            />
             <SkeletonOverlay frame={frame} width={WIDTH} height={HEIGHT} />
           </div>
-          <button onClick={toggleRecording}>
-            {recording ? '■ Parar gravação' : '● Gravar clip'}
-          </button>
+          <div className="controls">
+            <button onClick={toggleRecording}>
+              {recording ? '■ Parar gravação' : '● Gravar clip'}
+            </button>
+            <button
+              onClick={() =>
+                setFacingMode((m) => (m === 'environment' ? 'user' : 'environment'))
+              }
+              disabled={recording}
+            >
+              🔄 {facingMode === 'environment' ? 'Traseira' : 'Frontal'}
+            </button>
+          </div>
           <AnglePanel angles={angles} />
         </>
       )}

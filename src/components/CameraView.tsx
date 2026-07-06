@@ -3,11 +3,13 @@ import { forwardRef, useEffect, useState } from 'react'
 interface CameraViewProps {
   width: number
   height: number
+  /** 'environment' = câmara traseira (marcha do doente); 'user' = frontal. */
+  facingMode: 'user' | 'environment'
   onError: (message: string) => void
 }
 
 export const CameraView = forwardRef<HTMLVideoElement, CameraViewProps>(
-  function CameraView({ width, height, onError }, ref) {
+  function CameraView({ width, height, facingMode, onError }, ref) {
     const [streaming, setStreaming] = useState(false)
 
     useEffect(() => {
@@ -15,7 +17,7 @@ export const CameraView = forwardRef<HTMLVideoElement, CameraViewProps>(
       ;(async () => {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { width, height },
+            video: { facingMode: { ideal: facingMode }, width, height },
             audio: false,
           })
           const video = (ref as React.RefObject<HTMLVideoElement>).current
@@ -36,7 +38,7 @@ export const CameraView = forwardRef<HTMLVideoElement, CameraViewProps>(
         stream?.getTracks().forEach((t) => t.stop())
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [width, height])
+    }, [width, height, facingMode])
 
     return (
       <video
