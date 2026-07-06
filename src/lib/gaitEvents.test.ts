@@ -42,3 +42,30 @@ describe('walkDirection', () => {
     expect(walkDirection(frames)).toBe(0)
   })
 })
+
+import { detectEvents } from './gaitEvents'
+
+describe('detectEvents — coordinate', () => {
+  it('deteta heel strikes nos máximos do tornozelo relativo à anca', () => {
+    const offsets = [0, 0.1, 0.2, 0.1, 0, 0.1, 0.2, 0.1, 0]
+    const frames: RecordedFrame[] = offsets.map((off, i) => {
+      const hipX = 0.1 + (0.4 * i) / (offsets.length - 1)
+      return frameAt(i * 100, {
+        hipL: [hipX, 0.5],
+        hipR: [hipX, 0.5],
+        ankL: [hipX + off, 0.9],
+        ankR: [hipX, 0.9],
+      })
+    })
+    const events = detectEvents(frames, 'coordinate')
+    const leftHS = events.filter((e) => e.side === 'left' && e.type === 'heelStrike')
+    expect(leftHS.map((e) => e.timeMs)).toEqual([200, 600])
+  })
+
+  it('devolve [] quando não há deslocação (direção 0)', () => {
+    const frames: RecordedFrame[] = [0, 100, 200].map((t) =>
+      frameAt(t, { hipL: [0.5, 0.5], hipR: [0.5, 0.5], ankL: [0.5, 0.9], ankR: [0.5, 0.9] }),
+    )
+    expect(detectEvents(frames, 'coordinate')).toEqual([])
+  })
+})
