@@ -11,6 +11,8 @@ import { GaitMetricsPanel } from './GaitMetricsPanel'
 import { assessAntalgic, computeRom, pelvicObliquitySeries } from '../lib/compensation'
 import { CompensationPanel } from './CompensationPanel'
 import { TrendelenburgPanel } from './TrendelenburgPanel'
+import { buildSummary } from '../lib/gaitSummary'
+import { InterpretationPanel } from './InterpretationPanel'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -50,6 +52,10 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
   const antalgic = useMemo(() => assessAntalgic(metrics), [metrics])
   const rom = useMemo(() => computeRom(clip.frames), [clip])
   const obliquity = useMemo(() => pelvicObliquitySeries(clip.frames), [clip])
+  const summary = useMemo(
+    () => buildSummary(metrics, antalgic, rom, obliquity, operated, method),
+    [metrics, antalgic, rom, obliquity, operated, method],
+  )
 
   const durationMs = clip.frames.length
     ? clip.frames[clip.frames.length - 1].timeMs
@@ -118,6 +124,7 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
       <GaitMetricsPanel metrics={metrics} />
       <CompensationPanel antalgic={antalgic} rom={rom} operatedSide={operated} />
       <TrendelenburgPanel obliquity={obliquity} currentTimeMs={timeMs} onSeek={seekTo} />
+      <InterpretationPanel summary={summary} />
 
       {angles && <AnglePanel angles={angles} />}
     </div>

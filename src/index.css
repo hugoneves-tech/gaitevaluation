@@ -146,3 +146,102 @@
   background: #f8d7da;
   font-weight: bold;
 }
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.profile-button {
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #fff;
+  color: #1a1a1a;
+  border-radius: 8px;
+  padding: 1.25rem;
+  max-width: 420px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.modal label.remember {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.modal input[type='password'],
+.modal input[type='text'],
+.modal select {
+  padding: 0.4rem;
+}
+
+.modal-security {
+  font-size: 0.8rem;
+  color: #664d03;
+  background: #fff3cd;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.test-result ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25rem 0;
+}
+
+.interpretation {
+  margin-top: 1.25rem;
+}
+
+.privacy-note {
+  font-size: 0.85rem;
+  color: #6b6375;
+}
+
+.interpretation-text {
+  margin-top: 0.6rem;
+  white-space: pre-wrap;
+  background: #f7f7f9;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.model-used {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: #6b6375;
+}

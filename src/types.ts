@@ -93,3 +93,29 @@ export interface PelvicObliquity {
   peakDeg: number | null
   peakTimeMs: number | null
 }
+
+// ----- Camada de interpretação LLM (Gemini) -----
+
+/** 'auto' (fallback pela ordem preferida) ou um id de modelo específico. */
+export type ModelChoice = 'auto' | string
+
+export interface StoredKey {
+  key: string
+  remembered: boolean // true = localStorage; false = sessionStorage
+}
+
+export interface ModelAvailability {
+  model: string
+  available: boolean
+}
+
+export interface ConnectionTestResult {
+  ok: boolean
+  message: string
+  models: ModelAvailability[]
+}
+
+export interface InterpretationResult {
+  text: string
+  modelUsed: string
+}
