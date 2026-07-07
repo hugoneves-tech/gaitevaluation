@@ -13,6 +13,7 @@ import { CompensationPanel } from './CompensationPanel'
 import { TrendelenburgPanel } from './TrendelenburgPanel'
 import { buildSummary } from '../lib/gaitSummary'
 import { InterpretationPanel } from './InterpretationPanel'
+import { Card } from './Card'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -119,14 +120,26 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
         <button onClick={() => setRate(1)}>1×</button>
       </div>
 
-      <DetectionProfileBar value={method} onChange={setMethod} />
-      <OperatedSideSelector value={operated} onChange={setOperated} />
-      <GaitMetricsPanel metrics={metrics} />
-      <CompensationPanel antalgic={antalgic} rom={rom} operatedSide={operated} />
-      <TrendelenburgPanel obliquity={obliquity} currentTimeMs={timeMs} onSeek={seekTo} />
-      <InterpretationPanel summary={summary} />
+      <Card title="Deteção e métricas">
+        <DetectionProfileBar value={method} onChange={setMethod} />
+        <OperatedSideSelector value={operated} onChange={setOperated} />
+        <GaitMetricsPanel metrics={metrics} />
+      </Card>
 
-      {angles && <AnglePanel angles={angles} />}
+      <Card title="Compensação">
+        <CompensationPanel antalgic={antalgic} rom={rom} operatedSide={operated} />
+        <TrendelenburgPanel obliquity={obliquity} currentTimeMs={timeMs} onSeek={seekTo} />
+      </Card>
+
+      <Card title="Interpretação">
+        <InterpretationPanel summary={summary} />
+      </Card>
+
+      {angles && (
+        <Card title="Ângulos (frame atual)">
+          <AnglePanel angles={angles} />
+        </Card>
+      )}
     </div>
   )
 }
