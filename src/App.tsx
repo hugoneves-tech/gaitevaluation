@@ -6,6 +6,7 @@ import { SkeletonOverlay } from './components/SkeletonOverlay'
 import { AnglePanel } from './components/AnglePanel'
 import { ClipReviewer } from './components/ClipReviewer'
 import { PedagogicalNotice } from './components/PedagogicalNotice'
+import { ProfileModal } from './components/ProfileModal'
 import { computeAngles } from './lib/angles'
 import { createAngleSmoother } from './lib/smoothing'
 import { createLiveCadence } from './lib/liveCadence'
@@ -31,6 +32,7 @@ export default function App() {
   const [frame, setFrame] = useState<PoseFrame | null>(null)
   const [angles, setAngles] = useState<JointAngles>(emptyAngles)
   const [liveCadence, setLiveCadence] = useState<number | null>(null)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const rafRef = useRef<number>(0)
@@ -89,7 +91,13 @@ export default function App() {
   return (
     <main className="app">
       <h1>Análise de Marcha — Ferramenta Pedagógica</h1>
-      <PedagogicalNotice />
+      <div className="header-row">
+        <PedagogicalNotice />
+        <button className="profile-button" onClick={() => setProfileOpen(true)}>
+          ⚙️ Perfil
+        </button>
+      </div>
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
       <nav className="mode-tabs">
         <button
