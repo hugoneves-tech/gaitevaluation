@@ -1,5 +1,6 @@
 import { computeAngles } from './angles'
 import type { AntalgicAssessment, GaitMetrics, JointRom, RecordedFrame, RomResult, Side } from '../types'
+import type { ObliquitySample, PelvicObliquity } from '../types'
 
 const SYMMETRY_FLAG_PCT = 10
 const HIP_ROM_MIN_DEG = 30
@@ -59,4 +60,36 @@ export function computeRom(frames: RecordedFrame[], minVisibility = 0.5): RomRes
     }
   }
   return { left: forSide('left'), right: forSide('right') }
+}
+
+const HIP_L = 23
+const HIP_R = 24
+
+/**
+ * Série temporal da obliquidade pélvica (ângulo da linha das ancas) e o seu pico.
+ * angleDeg é null nos frames com ancas pouco visíveis.
+ */
+export function pelvicObliquitySeries(
+  frames: RecordedFrame[],
+  minVisibility = 0.5,
+): PelvicObliquity {
+  const series: ObliquitySample[] = frames.map((f) => {
+    const hl = f.landmarks[HIP_L]
+    const hr = f.landmarks[HIP_R]
+    if (hl.visibility < minVisibility || hr.visibility < minVisibility) {
+      return { timeMs: f.timeMs, angleDeg: null }
+    }
+    const angleDeg = (Math.atan2(hr.y - hl.y, hr.x - hl.x) * 180) / Math.PI
+    return { timeMs: f.timeMs, angleDeg }
+  })
+  let peakDeg: number | null = null
+  let peakTimeMs: number | null = null
+  for (const s of series) {
+    if (s.angleDeg === null) continue
+    if (peakDeg === null || Math.abs(s.angleDeg) > Math.abs(peakDeg)) {
+      peakDeg = s.angleDeg
+      peakTimeMs = s.timeMs
+    }
+  }
+  return { series, peakDeg, peakTimeMs }
 }

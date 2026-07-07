@@ -82,3 +82,40 @@ describe('computeRom', () => {
     expect(rom.left.hipDeg).toBeNull()
   })
 })
+
+import { pelvicObliquitySeries } from './compensation'
+
+/** Frame só com as ancas (23 esq, 24 dir) nas posições dadas. */
+function hipsFrame(
+  timeMs: number,
+  hipL: [number, number],
+  hipR: [number, number],
+  visibility = 1,
+): RecordedFrame {
+  const lm: PoseFrame = Array.from({ length: 33 }, () => P(0, 0, 0))
+  lm[23] = P(hipL[0], hipL[1], visibility)
+  lm[24] = P(hipR[0], hipR[1], visibility)
+  return { timeMs, landmarks: lm }
+}
+
+describe('pelvicObliquitySeries', () => {
+  it('0° quando a pélvis está nivelada; pico na maior inclinação', () => {
+    const frames: RecordedFrame[] = [
+      hipsFrame(0, [0.4, 0.5], [0.6, 0.5]),
+      hipsFrame(100, [0.4, 0.5], [0.6, 0.6]),
+    ]
+    const o = pelvicObliquitySeries(frames)
+    expect(o.series[0].angleDeg).toBeCloseTo(0, 1)
+    expect(o.series[1].angleDeg).toBeCloseTo(26.57, 1)
+    expect(o.peakDeg).toBeCloseTo(26.57, 1)
+    expect(o.peakTimeMs).toBe(100)
+  })
+
+  it('devolve null no frame com ancas pouco visíveis', () => {
+    const frames: RecordedFrame[] = [hipsFrame(0, [0.4, 0.5], [0.6, 0.6], 0.1)]
+    const o = pelvicObliquitySeries(frames)
+    expect(o.series[0].angleDeg).toBeNull()
+    expect(o.peakDeg).toBeNull()
+    expect(o.peakTimeMs).toBeNull()
+  })
+})
