@@ -12,7 +12,6 @@ const BONES: { a: number; b: number; side: 'left' | 'right' | 'center' }[] = [
   { a: 26, b: 28, side: 'right' },
   { a: 28, b: 32, side: 'right' },
   { a: 11, b: 12, side: 'center' },
-  { a: 23, b: 24, side: 'center' },
 ]
 
 const COLORS = { left: '#2ecc71', right: '#e74c3c', center: '#3498db' }
@@ -47,6 +46,19 @@ export function SkeletonOverlay({
       ctx.moveTo(a.x * width, a.y * height)
       ctx.lineTo(b.x * width, b.y * height)
       ctx.stroke()
+    }
+
+    // Linha da pélvis (obliquidade) — estilo distinto para o Trendelenburg.
+    const hipL = frame[23]
+    const hipR = frame[24]
+    if (hipL.visibility >= MIN_VIS && hipR.visibility >= MIN_VIS) {
+      ctx.strokeStyle = '#9b59b6'
+      ctx.lineWidth = 6
+      ctx.beginPath()
+      ctx.moveTo(hipL.x * width, hipL.y * height)
+      ctx.lineTo(hipR.x * width, hipR.y * height)
+      ctx.stroke()
+      ctx.lineWidth = 4
     }
 
     ctx.fillStyle = '#ffffff'

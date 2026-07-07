@@ -8,6 +8,9 @@ import { AnglePanel } from './AnglePanel'
 import { DetectionProfileBar } from './DetectionProfileBar'
 import { OperatedSideSelector } from './OperatedSideSelector'
 import { GaitMetricsPanel } from './GaitMetricsPanel'
+import { assessAntalgic, computeRom, pelvicObliquitySeries } from '../lib/compensation'
+import { CompensationPanel } from './CompensationPanel'
+import { TrendelenburgPanel } from './TrendelenburgPanel'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -44,6 +47,9 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
   )
   const events = useMemo(() => detectEvents(clip.frames, method), [clip, method])
   const metrics = useMemo(() => computeMetrics(events, operated), [events, operated])
+  const antalgic = useMemo(() => assessAntalgic(metrics), [metrics])
+  const rom = useMemo(() => computeRom(clip.frames), [clip])
+  const obliquity = useMemo(() => pelvicObliquitySeries(clip.frames), [clip])
 
   const durationMs = clip.frames.length
     ? clip.frames[clip.frames.length - 1].timeMs
@@ -53,6 +59,10 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
     const video = videoRef.current
     if (!video) return
     video.currentTime = Math.max(0, video.currentTime + deltaMs / 1000)
+  }
+
+  const seekTo = (timeMs: number) => {
+    if (videoRef.current) videoRef.current.currentTime = timeMs / 1000
   }
 
   const setRate = (rate: number) => {
@@ -106,6 +116,8 @@ export function ClipReviewer({ clip }: { clip: RecordedClip }) {
       <DetectionProfileBar value={method} onChange={setMethod} />
       <OperatedSideSelector value={operated} onChange={setOperated} />
       <GaitMetricsPanel metrics={metrics} />
+      <CompensationPanel antalgic={antalgic} rom={rom} operatedSide={operated} />
+      <TrendelenburgPanel obliquity={obliquity} currentTimeMs={timeMs} onSeek={seekTo} />
 
       {angles && <AnglePanel angles={angles} />}
     </div>
