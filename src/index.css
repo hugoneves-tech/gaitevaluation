@@ -53,3 +53,68 @@
 .controls {
   margin-top: 0.5rem;
 }
+
+.profile-bar,
+.operated-selector {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.profile-bar button,
+.operated-selector button {
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+.profile-bar button[aria-pressed='true'],
+.operated-selector button[aria-pressed='true'] {
+  font-weight: bold;
+  border-bottom: 2px solid #3498db;
+}
+
+.event-timeline {
+  position: relative;
+  height: 14px;
+  margin-top: 4px;
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.event-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 14px;
+  transform: translateX(-1px);
+}
+
+.gait-metrics {
+  margin-top: 1rem;
+}
+
+.metrics-highlight {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.metrics-cycles {
+  color: #6b6375;
+}
+
+.metrics-warning {
+  margin-top: 1rem;
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffe69c;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.live-cadence {
+  margin-top: 0.5rem;
+}
