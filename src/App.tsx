@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePoseEngine } from './hooks/usePoseEngine'
 import { useClipRecorder } from './hooks/useClipRecorder'
-import { CameraView } from './components/CameraView'
-import { SkeletonOverlay } from './components/SkeletonOverlay'
-import { AnglePanel } from './components/AnglePanel'
+import { AppHeader } from './components/AppHeader'
+import { ModeTabs, type Mode } from './components/ModeTabs'
+import { CameraStage } from './components/CameraStage'
 import { ClipReviewer } from './components/ClipReviewer'
 import { PedagogicalNotice } from './components/PedagogicalNotice'
 import { ProfileModal } from './components/ProfileModal'
@@ -13,11 +13,7 @@ import { createLiveCadence } from './lib/liveCadence'
 import type { JointAngles, PoseFrame } from './types'
 import './index.css'
 
-const WIDTH = 640
-const HEIGHT = 480
 const MIN_VIS = 0.5
-
-type Mode = 'live' | 'review'
 
 const emptyAngles: JointAngles = {
   hip: { left: null, right: null },
@@ -33,13 +29,13 @@ export default function App() {
   const [angles, setAngles] = useState<JointAngles>(emptyAngles)
   const [liveCadence, setLiveCadence] = useState<number | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const rafRef = useRef<number>(0)
   const { ready, error: engineError, detect } = usePoseEngine()
   const { recording, clip, start, stop, captureFrame } = useClipRecorder()
 
-  // Suavizadores por articulação/lado (persistem entre frames).
   const smoothers = useRef({
     hipL: createAngleSmoother(0.4), hipR: createAngleSmoother(0.4),
     kneeL: createAngleSmoother(0.4), kneeR: createAngleSmoother(0.4),
@@ -47,7 +43,6 @@ export default function App() {
   })
   const cadenceCounter = useRef(createLiveCadence(5000, 300))
 
-  // Loop de deteção no modo Ao Vivo.
   useEffect(() => {
     if (mode !== 'live' || !ready) return
     let running = true
@@ -79,6 +74,16 @@ export default function App() {
     }
   }, [mode, ready, detect, recording, captureFrame])
 
+  // Cronómetro de gravação.
+  useEffect(() => {
+    if (!recording) {
+      setRecordingSeconds(0)
+      return
+    }
+    const id = setInterval(() => setRecordingSeconds((s) => s + 1), 1000)
+    return () => clearInterval(id)
+  }, [recording])
+
   const toggleRecording = () => {
     const video = videoRef.current
     if (!video?.srcObject) return
@@ -86,75 +91,39 @@ export default function App() {
     else start(video.srcObject as MediaStream)
   }
 
+  const switchCamera = () =>
+    setFacingMode((m) => (m === 'environment' ? 'user' : 'environment'))
+
   const displayError = error ?? engineError
 
   return (
     <main className="app">
-      <h1>Análise de Marcha — Ferramenta Pedagógica</h1>
-      <div className="header-row">
-        <PedagogicalNotice />
-        <button className="profile-button" onClick={() => setProfileOpen(true)}>
-          ⚙️ Perfil
-        </button>
-      </div>
+      <AppHeader onOpenProfile={() => setProfileOpen(true)} />
+      <PedagogicalNotice />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
-      <nav className="mode-tabs">
-        <button
-          aria-pressed={mode === 'live'}
-          onClick={() => setMode('live')}
-        >
-          Ao Vivo
-        </button>
-        <button
-          aria-pressed={mode === 'review'}
-          onClick={() => setMode('review')}
-        >
-          Rever
-        </button>
-      </nav>
+      <ModeTabs mode={mode} onChange={setMode} />
 
       {displayError && <p className="error">{displayError}</p>}
-      {!ready && mode === 'live' && <p>A carregar o modelo de pose…</p>}
+      {!ready && mode === 'live' && <p className="loading">A carregar o modelo de pose…</p>}
 
       {mode === 'live' && (
-        <>
-          <div style={{ position: 'relative', width: WIDTH, height: HEIGHT }}>
-            <CameraView
-              ref={videoRef}
-              width={WIDTH}
-              height={HEIGHT}
-              facingMode={facingMode}
-              onError={setError}
-            />
-            <SkeletonOverlay frame={frame} width={WIDTH} height={HEIGHT} />
-          </div>
-          <div className="controls">
-            <button onClick={toggleRecording}>
-              {recording ? '■ Parar gravação' : '● Gravar clip'}
-            </button>
-            <button
-              onClick={() =>
-                setFacingMode((m) => (m === 'environment' ? 'user' : 'environment'))
-              }
-              disabled={recording}
-            >
-              🔄 {facingMode === 'environment' ? 'Traseira' : 'Frontal'}
-            </button>
-          </div>
-          <AnglePanel angles={angles} />
-          <p className="live-cadence">
-            Cadência (aproximada):{' '}
-            <strong>{liveCadence === null ? '—' : Math.round(liveCadence)}</strong> passos/min
-          </p>
-        </>
+        <CameraStage
+          videoRef={videoRef}
+          frame={frame}
+          angles={angles}
+          liveCadence={liveCadence}
+          facingMode={facingMode}
+          recording={recording}
+          recordingSeconds={recordingSeconds}
+          onToggleRecording={toggleRecording}
+          onSwitchCamera={switchCamera}
+          onCameraError={setError}
+        />
       )}
 
-      {mode === 'review' && (
-        clip
-          ? <ClipReviewer clip={clip} />
-          : <p>Grave um clip primeiro no modo Ao Vivo.</p>
-      )}
+      {mode === 'review' &&
+        (clip ? <ClipReviewer clip={clip} /> : <p>Grave um clip primeiro no modo Ao Vivo.</p>)}
     </main>
   )
 }
