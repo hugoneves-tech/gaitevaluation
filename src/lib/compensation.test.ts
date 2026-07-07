@@ -36,3 +36,49 @@ describe('assessAntalgic', () => {
     expect(a.flagged).toBe(false)
   })
 })
+
+import { computeRom } from './compensation'
+import type { Landmark, PoseFrame, RecordedFrame } from '../types'
+
+const P = (x: number, y: number, visibility = 1): Landmark => ({ x, y, z: 0, visibility })
+
+/** Frame com landmarks do lado esquerdo (ombro 11, anca 23, joelho 25, tornozelo 27). */
+function leftLegFrame(
+  timeMs: number,
+  sh: [number, number],
+  hip: [number, number],
+  knee: [number, number],
+  ank: [number, number],
+  visibility = 1,
+): RecordedFrame {
+  const lm: PoseFrame = Array.from({ length: 33 }, () => P(0, 0, 0))
+  lm[11] = P(sh[0], sh[1], visibility)
+  lm[23] = P(hip[0], hip[1], visibility)
+  lm[25] = P(knee[0], knee[1], visibility)
+  lm[27] = P(ank[0], ank[1], visibility)
+  return { timeMs, landmarks: lm }
+}
+
+describe('computeRom', () => {
+  it('calcula a amplitude do joelho e sinaliza a anca sem amplitude', () => {
+    const frames: RecordedFrame[] = [
+      leftLegFrame(0, [0, -1], [0, 0], [0, 1], [0, 2]),
+      leftLegFrame(100, [0, -1], [0, 0], [0, 1], [1, 1]),
+    ]
+    const rom = computeRom(frames)
+    expect(rom.left.kneeDeg).toBeCloseTo(90, 0)
+    expect(rom.left.kneeReduced).toBe(false)
+    expect(rom.left.hipDeg).toBeCloseTo(0, 0)
+    expect(rom.left.hipReduced).toBe(true)
+  })
+
+  it('devolve null quando os landmarks têm baixa visibilidade', () => {
+    const frames: RecordedFrame[] = [
+      leftLegFrame(0, [0, -1], [0, 0], [0, 1], [0, 2], 0.1),
+      leftLegFrame(100, [0, -1], [0, 0], [0, 1], [1, 1], 0.1),
+    ]
+    const rom = computeRom(frames)
+    expect(rom.left.kneeDeg).toBeNull()
+    expect(rom.left.hipDeg).toBeNull()
+  })
+})
