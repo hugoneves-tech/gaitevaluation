@@ -118,3 +118,31 @@
 .live-cadence {
   margin-top: 0.5rem;
 }
+
+.compensation,
+.trendelenburg {
+  margin-top: 1.25rem;
+}
+
+.compensation h3,
+.trendelenburg h3 {
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+.antalgic-flagged {
+  background: #f8d7da;
+  color: #842029;
+  border: 1px solid #f1aeb5;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.antalgic-ok {
+  color: #0f5132;
+}
+
+.rom-reduced {
+  background: #f8d7da;
+  font-weight: bold;
+}
