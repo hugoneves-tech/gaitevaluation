@@ -61,3 +61,35 @@ export interface GaitMetrics {
   nonOperated: SideMetrics
   symmetryIndexPct: number | null
 }
+
+// ----- Fase 2 C: sinais de compensação -----
+
+export interface AntalgicAssessment {
+  evaluable: boolean
+  flagged: boolean
+  message: string
+}
+
+export interface JointRom {
+  hipDeg: number | null
+  kneeDeg: number | null
+  hipReduced: boolean
+  kneeReduced: boolean
+}
+
+export interface RomResult {
+  left: JointRom
+  right: JointRom
+}
+
+/** Um ponto da série de obliquidade pélvica. */
+export interface ObliquitySample {
+  timeMs: number
+  angleDeg: number | null
+}
+
+export interface PelvicObliquity {
+  series: ObliquitySample[]
+  peakDeg: number | null
+  peakTimeMs: number | null
+}
